@@ -1,31 +1,32 @@
-import { useAppSelector } from '../store/hooks';
-import { selectAllPosts } from '../store/posts/postsSlice';
-import PostAuthor from './PostAuthor';
-import TimeAgo from './TimeAgo';
-import ReactionBtns from './ReactionBtns';
+import { useAppSelector, useAppDispatch } from '../store/hooks';
+import { selectAllPosts, fetchPosts, getPostsError, getPostsStatus } from '../store/posts/postsSlice';
+import { useEffect } from 'react';
+import SinglePost from './SinglePost';
 
 const PostsList = () => {
+  const dispatch = useAppDispatch();
   const posts = useAppSelector(selectAllPosts);
+  const postsError = useAppSelector(getPostsError);
+  const postsStatus = useAppSelector(getPostsStatus);
 
-  const orderedPosts = posts.slice().sort((a, b) => b.date.localeCompare(a.date));
+  useEffect(() => {
+    postsStatus === 'idle' ? dispatch(fetchPosts()) : '';
+  }, [postsStatus, dispatch]);
 
-  const renderedPosts = orderedPosts.map((post) => {
-    return (
-      <article key={post.id}>
-        <h3>{post.title}</h3>
-        <p>{post.content.substring(0, 100)}</p>
-        <p className="postCredit">
-          <PostAuthor userId={post.userId} />
-          <TimeAgo timestamp={post.date} />
-        </p>
-        <ReactionBtns post={post} />
-      </article>
-    );
-  });
+  let body;
+  if (postsStatus === 'loading') {
+    body = <p>Loading...</p>;
+  } else if (postsStatus === 'succeeded') {
+    const orderedPosts = posts.slice().sort((a, b) => b.date.localeCompare(a.date));
+    body = orderedPosts.map((post) => <SinglePost key={post.id} post={post} />);
+  } else if (postsStatus === 'failed') {
+    body = <p>{postsError}</p>;
+  }
+
   return (
     <section>
       <h2>Posts</h2>
-      {renderedPosts}
+      {body}
     </section>
   );
 };

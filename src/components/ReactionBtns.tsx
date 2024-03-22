@@ -12,7 +12,8 @@ const reactionEmoji = {
 const ReactionBtns = ({ post }: { post: Post }) => {
   const dispatch = useAppDispatch();
   const reactionBtns = Object.entries(reactionEmoji).map(([name, emoji]) => {
-    const reaction = name as keyof typeof reactionEmoji; // Explicitly cast name to keyof typeof reactionEmoji
+    // const reaction = name as keyof typeof reactionEmoji; // Explicitly cast name to keyof typeof reactionEmoji
+    const reaction = name as keyof Post['reactions']; // Explicitly cast name to keyof typeof reactionEmoji
 
     return (
       <button
